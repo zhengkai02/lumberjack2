@@ -176,27 +176,11 @@ type MySQLConfig struct {
 }
 
 var (
-	db        *sql.DB
-	err       error
-	mysqlConf *MySQLConfig
+	db  *sql.DB
+	err error
 )
 
-func InitMySQLConfig(user, passwd, host, dbName string, port int) error {
-	if len(user) == 0 || len(passwd) == 0 || len(host) == 0 || len(dbName) == 0 {
-		return errors.New("invalid params [user/passwd/host/dbName/port]")
-	}
-	if mysqlConf == nil {
-		mysqlConf = &MySQLConfig{
-			user:   user,
-			passwd: passwd,
-			host:   host,
-			dbName: dbName,
-			port:   port,
-		}
-	}
-	return nil
-}
-func Init() {
+func Init(mysqlConf *MySQLConfig) {
 	defer func() {
 		if err := recover(); err != nil {
 			db.Close()
