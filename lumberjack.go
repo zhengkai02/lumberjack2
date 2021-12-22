@@ -124,12 +124,9 @@ type Logger struct {
 	// PostHandler is the handler after rotating of the file. Notify the remote server
 	// or some others to do something, such as transfer the file to the FILE-STORAGE-SYS.
 	PostHandler PostRotateCallback
-	// newFileName is the file be rotated. It is used by transfer server. For detail call liping_chang@intsig.net
 	//	newFileName string
 	postData struct {
-		// newFileName is the file be rotated. It is used by transfer server. For detail call liping_chang@intsig.net
 		newFileName string
-		// newFileSize is the file size be rotated. It is used by transfer server. For detail call liping_chang@intsig.net
 		newFileSize int64
 		// current database and table name
 		db, tb, date    string
@@ -402,7 +399,7 @@ func backupName(name string, local bool, last int32) string {
 // between the filename and the extension, index is the seq NO. of file,
 // padding zero if index length less than 4,
 // inserting last flag to identify the last log file if requested.
-// @retrun backupFileName, date, idx, error
+// retrun backupFileName, date, idx, error
 func backupNameUseIndex(db, tb, name string) (string, string, int, error) {
 	var (
 		index, dbIndex int
