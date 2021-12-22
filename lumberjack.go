@@ -169,11 +169,11 @@ var (
 )
 
 type MySQLConfig struct {
-	user   string
-	passwd string
-	host   string
-	dbName string
-	port   int
+	User   string
+	Passwd string
+	Host   string
+	DbName string
+	Port   int
 }
 
 var (
@@ -190,7 +190,7 @@ func Init(mysqlConf *MySQLConfig) {
 	if mysqlConf == nil {
 		panic("mysql config uninitialized")
 	}
-	url := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8", mysqlConf.user, mysqlConf.passwd, mysqlConf.host, mysqlConf.port, mysqlConf.dbName)
+	url := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8", mysqlConf.User, mysqlConf.Passwd, mysqlConf.Host, mysqlConf.Port, mysqlConf.DbName)
 	tmpDB, err := sql.Open("mysql", url)
 	// 验证连接
 	if err != nil {
