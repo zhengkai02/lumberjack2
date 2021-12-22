@@ -212,6 +212,29 @@ func Init(mysqlConf *MySQLConfig) {
 	}
 }
 
+func Reload(mysqlConf *MySQLConfig) error {
+	err := db.Close()
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8", mysqlConf.User, mysqlConf.Passwd, mysqlConf.Host, mysqlConf.Port, mysqlConf.DbName)
+	tmpDB, err := sql.Open("mysql", url)
+	// 验证连接
+	if err != nil {
+		fmt.Printf("reload db connetion failed,url=[%s]err=[%v]\n", url, err)
+		return err
+	}
+	if err = tmpDB.Ping(); err != nil {
+		return err
+	}
+	tmpDB.SetConnMaxIdleTime(3600 * time.Second)
+	tmpDB.SetConnMaxLifetime(3600 * time.Second)
+	tmpDB.SetMaxIdleConns(2)
+	tmpDB.SetMaxOpenConns(2)
+	db = tmpDB
+	return nil
+}
+
 // Write implements io.Writer.  If a write would cause the log file to be larger
 // than MaxSize, the file is closed, renamed to include a timestamp of the
 // current time, and a new log file is created using the original log file name.
