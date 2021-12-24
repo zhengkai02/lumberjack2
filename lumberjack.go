@@ -29,6 +29,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"io"
 	"io/ioutil"
+	"runtime"
+
 	//"log"
 	"os"
 	"path/filepath"
@@ -179,11 +181,7 @@ var (
 )
 
 func Init(mysqlConf *MySQLConfig) {
-	defer func() {
-		if err := recover(); err != nil {
-			db.Close()
-		}
-	}()
+	defer RecoverPanic()
 	if mysqlConf == nil {
 		panic("mysql config uninitialized")
 	}
@@ -1010,4 +1008,20 @@ func updateFileMetaInfo(date string, index int, dbStr, tbStr string) error {
 		return fmt.Errorf("update file info err: %v . Or affect rows is 0", err)
 	}
 	return nil
+}
+
+// RecoverPanic 恢复panic
+func RecoverPanic() {
+	err := recover()
+	if err != nil {
+		_ = fmt.Errorf("err=[%v],stack=[%s]", err, GetStackInfo)
+		db.Close()
+	}
+}
+
+// GetStackInfo 获取Panic堆栈信息
+func GetStackInfo() string {
+	buf := make([]byte, 4096)
+	n := runtime.Stack(buf, false)
+	return fmt.Sprintf("%s", buf[:n])
 }
