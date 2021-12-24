@@ -29,6 +29,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"io"
 	"io/ioutil"
+	"net"
 	"runtime"
 
 	//"log"
@@ -42,6 +43,7 @@ import (
 )
 
 const (
+	LOCAL_HOST        = "127.0.0.1"
 	backupTimeFormat  = "2006-01-02T15-04-05.000"
 	normalTimeFormate = "2006-01-02 15-04-05.000"
 	DATEFORMAT        = "2006-01-02" //formate of date, used to rotate
@@ -165,6 +167,7 @@ var (
 	Kilobyte = 1024
 	megabyte = 1024 * Kilobyte
 	Gigabyte = 1024 * megabyte
+	localIp  = ExternalIP()
 )
 
 type MySQLConfig struct {
@@ -983,10 +986,10 @@ func getFileMetaInfos() (fmis []*fileMetaInfo, err error) {
 	return fmis, err
 }
 func insertFileMetaInfo(name, date string, index int, dbStr, tbStr string) error {
-	sql := "INSERT INTO t_binlog2file_status(file_name, date, idx, db, tb, create_time, modify_time) " +
-		"VALUES(?,?,?,?,?,?,?)"
+	sql := "INSERT INTO t_binlog2file_status(host,file_name, date, idx, db, tb, create_time, modify_time) " +
+		"VALUES(?,?,?,?,?,?,?,?)"
 	t := currentTime().Format(normalTimeFormate)
-	_, err := db.Exec(sql, name, date, index, dbStr, tbStr, t, t)
+	_, err := db.Exec(sql, localIp, name, date, index, dbStr, tbStr, t, t)
 	if err != nil {
 		return err
 	}
@@ -996,11 +999,12 @@ func insertFileMetaInfo(name, date string, index int, dbStr, tbStr string) error
 //更新表中某条记录
 func updateFileMetaInfo(date string, index int, dbStr, tbStr string) error {
 	sql := "UPDATE t_binlog2file_status SET " +
+		"host = ?" +
 		"date = ?," +
 		"idx = ?," +
 		"modify_time = ?" +
 		" WHERE db = ? AND tb = ?;"
-	result, err := db.Exec(sql, date, strconv.FormatInt(int64(index), 10), time.Now().Format(normalTimeFormate), dbStr, tbStr)
+	result, err := db.Exec(sql, localIp, date, strconv.FormatInt(int64(index), 10), time.Now().Format(normalTimeFormate), dbStr, tbStr)
 	if err != nil {
 		return err
 	}
@@ -1024,4 +1028,50 @@ func GetStackInfo() string {
 	buf := make([]byte, 4096)
 	n := runtime.Stack(buf, false)
 	return fmt.Sprintf("%s", buf[:n])
+}
+
+// 获取当前服务器IP
+func ExternalIP() string {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return LOCAL_HOST
+	}
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 {
+			continue // interface down
+		}
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue // loopback interface
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return LOCAL_HOST
+		}
+		for _, addr := range addrs {
+			ip := getIpFromAddr(addr)
+			if ip == nil {
+				continue
+			}
+			return ip.String()
+		}
+	}
+	return LOCAL_HOST
+}
+func getIpFromAddr(addr net.Addr) net.IP {
+	var ip net.IP
+	switch v := addr.(type) {
+	case *net.IPNet:
+		ip = v.IP
+	case *net.IPAddr:
+		ip = v.IP
+	}
+	if ip == nil || ip.IsLoopback() {
+		return nil
+	}
+	ip = ip.To4()
+	if ip == nil {
+		return nil // not an ipv4 address
+	}
+
+	return ip
 }
