@@ -999,7 +999,7 @@ func insertFileMetaInfo(name, date string, index int, dbStr, tbStr string) error
 //更新表中某条记录
 func updateFileMetaInfo(date string, index int, dbStr, tbStr string) error {
 	sql := "UPDATE t_binlog2file_status SET " +
-		"host = ?" +
+		"host = ?," +
 		"date = ?," +
 		"idx = ?," +
 		"modify_time = ?" +
