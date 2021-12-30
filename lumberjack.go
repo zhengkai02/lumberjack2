@@ -171,11 +171,13 @@ var (
 )
 
 type MySQLConfig struct {
-	User   string
-	Passwd string
-	Host   string
-	DbName string
-	Port   int
+	User         string
+	Passwd       string
+	Host         string
+	DbName       string
+	Port         int
+	MaxIdleConns int
+	MaxOpenConns int
 }
 
 var (
@@ -200,8 +202,8 @@ func Init(mysqlConf *MySQLConfig) {
 	}
 	tmpDB.SetConnMaxIdleTime(3600 * time.Second)
 	tmpDB.SetConnMaxLifetime(3600 * time.Second)
-	tmpDB.SetMaxIdleConns(2)
-	tmpDB.SetMaxOpenConns(2)
+	tmpDB.SetMaxIdleConns(mysqlConf.MaxIdleConns)
+	tmpDB.SetMaxOpenConns(mysqlConf.MaxOpenConns)
 	db = tmpDB
 	sqlStr := "select 1 from t_binlog2file_status"
 	_, err = db.Query(sqlStr)
