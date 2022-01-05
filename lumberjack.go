@@ -999,15 +999,15 @@ func insertFileMetaInfo(name, date string, index int, dbStr, tbStr string) error
 }
 
 //更新表中某条记录
-func updateFileMetaInfo(name, date string, index int, dbStr, tbStr string) error {
+func updateFileMetaInfo(fileName, date string, index int, dbStr, tbStr string) error {
 	sql := "UPDATE t_binlog2file_status SET " +
 		"host = ?," +
 		"date = ?," +
 		"idx = ?," +
-		"name = ?," +
+		"file_name = ?," +
 		"modify_time = ?" +
 		" WHERE db = ? AND tb = ?;"
-	result, err := db.Exec(sql, localIp, date, strconv.FormatInt(int64(index), 10), name, time.Now().Format(normalTimeFormate), dbStr, tbStr)
+	result, err := db.Exec(sql, localIp, date, strconv.FormatInt(int64(index), 10), fileName, time.Now().Format(normalTimeFormate), dbStr, tbStr)
 	if err != nil {
 		return err
 	}
