@@ -447,7 +447,7 @@ func backupNameUseIndex(db, tb, name string) (string, string, int, error) {
 		dbDate = currentTime().Format(DATEFORMAT)
 		ext = (LASTFILE + ext)
 	}
-	if err := updateFileMetaInfo(dbDate, dbIndex, db, tb); err != nil {
+	if err := updateFileMetaInfo(name, dbDate, dbIndex, db, tb); err != nil {
 		//		log.Printf("update file: %s meta info to mysql err: %v", filename, err)
 		return "", "", -1, fmt.Errorf("update file: %s meta info to mysql err: %v", filename, err)
 	}
@@ -999,14 +999,15 @@ func insertFileMetaInfo(name, date string, index int, dbStr, tbStr string) error
 }
 
 //更新表中某条记录
-func updateFileMetaInfo(date string, index int, dbStr, tbStr string) error {
+func updateFileMetaInfo(name, date string, index int, dbStr, tbStr string) error {
 	sql := "UPDATE t_binlog2file_status SET " +
 		"host = ?," +
 		"date = ?," +
 		"idx = ?," +
+		"name = ?," +
 		"modify_time = ?" +
 		" WHERE db = ? AND tb = ?;"
-	result, err := db.Exec(sql, localIp, date, strconv.FormatInt(int64(index), 10), time.Now().Format(normalTimeFormate), dbStr, tbStr)
+	result, err := db.Exec(sql, localIp, date, strconv.FormatInt(int64(index), 10), name, time.Now().Format(normalTimeFormate), dbStr, tbStr)
 	if err != nil {
 		return err
 	}
